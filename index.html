@@ -43,9 +43,14 @@
 <div id="result">Waiting for scan...</div>
 
 <script>
-let scanLock = false;
+let html5QrCode;
 
+// 🔴 Change this if needed
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4j_4jYNPX0pdeTgxeEgVfi4Ph8ULjwynMNApyQdKG3OryHm8l3jjYR3EP4vnLisyW2w/exec";
+
+// 🛡️ Teacher-proof storage
+let scanCooldown = {};
+let SESSION_ID = new Date().toDateString(); // resets daily
 
 function startScanner() {
   html5QrCode = new Html5Qrcode("reader");
@@ -55,33 +60,38 @@ function startScanner() {
     { fps: 10, qrbox: 250 },
     (decodedText) => {
 
-      // 🚫 BLOCK DUPLICATE SCANS
-      if (scanLock) return;
+      let now = new Date();
+      let time = now.toLocaleString();
 
-      scanLock = true;
+      let studentId = decodedText.trim();
 
-      const now = new Date().toLocaleString();
+      // 🛡️ RULE 1: prevent spam scanning (per student)
+      if (scanCooldown[studentId]) {
+        let lastTime = scanCooldown[studentId];
+        let diff = (now - lastTime) / 1000;
 
+        // ignore if scanned within 5 seconds
+        if (diff < 5) return;
+      }
+
+      scanCooldown[studentId] = now;
+
+      // 🛡️ RULE 2: show on screen
       document.getElementById("result").innerHTML =
-        "Scanned: " + decodedText + "<br>" + now;
+        "Scanned: <b>" + studentId + "</b><br>" + time;
 
-      // Send to Google Sheets
+      // 🛡️ RULE 3: send to Google Sheets
       fetch(SCRIPT_URL, {
         method: "POST",
         body: JSON.stringify({
-          name: "Student",
-          qr: decodedText,
-          time: now
+          qr: studentId,
+          time: time,
+          session: SESSION_ID
         })
       })
       .then(res => res.text())
       .then(data => console.log(data))
       .catch(err => console.error(err));
-
-      // ⏱️ Unlock after 3 seconds
-      setTimeout(() => {
-        scanLock = false;
-      }, 3000);
 
     }
   ).catch(err => {
