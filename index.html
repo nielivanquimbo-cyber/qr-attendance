@@ -43,9 +43,8 @@
 <div id="result">Waiting for scan...</div>
 
 <script>
-let html5QrCode;
+let scanLock = false;
 
-// 🔴 PUT YOUR GOOGLE APPS SCRIPT URL HERE
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4j_4jYNPX0pdeTgxeEgVfi4Ph8ULjwynMNApyQdKG3OryHm8l3jjYR3EP4vnLisyW2w/exec";
 
 function startScanner() {
@@ -55,6 +54,11 @@ function startScanner() {
     { facingMode: "environment" },
     { fps: 10, qrbox: 250 },
     (decodedText) => {
+
+      // 🚫 BLOCK DUPLICATE SCANS
+      if (scanLock) return;
+
+      scanLock = true;
 
       const now = new Date().toLocaleString();
 
@@ -74,8 +78,15 @@ function startScanner() {
       .then(data => console.log(data))
       .catch(err => console.error(err));
 
+      // ⏱️ Unlock after 3 seconds
+      setTimeout(() => {
+        scanLock = false;
+      }, 3000);
+
     }
-  );
+  ).catch(err => {
+    alert("Camera error: " + err);
+  });
 }
 
 function stopScanner() {
