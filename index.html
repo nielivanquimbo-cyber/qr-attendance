@@ -72,14 +72,14 @@ function startScanner() {
       document.getElementById("result").innerHTML =
         "Scanned: <b>" + studentId + "</b><br>" + now;
 
-      fetch(SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify({
-          qr: studentId,
-          time: now,
-          session: SESSION
-        })
-      });
+     fetch(SCRIPT_URL, {
+  method: "POST",
+  body: JSON.stringify({
+    qr: studentId,
+    time: new Date().toLocaleString(),
+    session: new Date().toDateString()
+  })
+});
 
     }
   );
