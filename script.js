@@ -69,3 +69,25 @@ Html5Qrcode.getCameras()
   );
 
 });
+
+function testAttendance() {
+
+  fetch(WEBAPP_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      studentID: "TEST001"
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    alert("Success!");
+  })
+  .catch(error => {
+    console.error(error);
+    alert("Failed!");
+  });
+
+}
